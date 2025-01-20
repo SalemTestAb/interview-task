@@ -1,0 +1,17 @@
+name: Create Repository
+
+on:
+  workflow_dispatch: # Trigger manually via GitHub Actions UI
+
+jobs:
+  create-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create a new repository
+        uses: octokit/request-action@v2.x
+        with:
+          route: POST /user/repos
+          repo: my-new-repository-name
+          private: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
