@@ -10,8 +10,8 @@ jobs:
       - name: Create a new repository
         uses: octokit/request-action@v2.x
         with:
-          route: POST /user/repos
+          route: POST /SalemTestAb/repos
           repo: my-new-repository-name
-          private: true
+          private: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
