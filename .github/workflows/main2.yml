@@ -1,0 +1,84 @@
+name: Deploy Terraform
+
+on:
+  workflow_dispatch:
+    inputs:
+      input_string:
+        description: "Input github user name to create a repository"
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    name: Deploy with Terraform
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Validate GitHub Username
+        id: validate_username
+        run: |
+            echo "Validating GitHub username: ${{ github.event.inputs.username }}"
+
+            # Define a regex pattern for allowed characters in GitHub usernames
+            # GitHub usernames can include alphanumeric characters, hyphens, and must be between 1-39 characters
+            if ! [[ "${{ github.event.inputs.username }}" =~ ^[a-zA-Z0-9-]{1,39}$ ]]; then
+              echo "Error: Username '${{ github.event.inputs.username }}' contains invalid characters."
+              exit 1
+            fi
+
+            # Perform the API request safely
+            response=$(curl -s "https://api.github.com/search/users?q=$(printf '%q' "${{ github.event.inputs.username }}")")
+
+            # Parse the response using jq
+            count=$(echo "$response" | jq '.total_count')
+            usernames=$(echo "$response" | jq -r '.items[].login')
+
+            # Check if the username exists
+            if [[ "$count" -eq 0 ]]; then
+              echo "Error: Username '${{ github.event.inputs.username }}' does not exist."
+              exit 1
+            fi
+
+            if ! echo "$usernames" | grep -qx "${{ github.event.inputs.username }}"; then
+              echo "Error: Username '${{ github.event.inputs.username }}' does not exist in the search results."
+              exit 1
+            fi
+
+            echo "Username '${{ github.event.inputs.username }}' is valid."
+
+    - name: Azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ inputs.client_id  }}
+        tenant-id: ${{ inputs.tenant_id }}
+        subscription-id: ${{ inputs.subscription_id }}
+
+    # - name: Set Environment Variables
+    #   shell: bash
+    #   run: |
+    #     echo "ARM_CLIENT_ID=${{ inputs.client_id }}" >> $GITHUB_ENV
+    #     echo "ARM_SUBSCRIPTION_ID=${{ inputs.subscription_id }}" >> $GITHUB_ENV
+    #     echo "ARM_TENANT_ID=${{ inputs.tenant_id }}" >> $GITHUB_ENV
+    #     echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.7.1
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        env:
+          TF_VAR_input_string: ${{ github.event.inputs.input_string }}
+        run: |
+          terraform plan -var="input_string=${{ github.event.inputs.input_string }}"
+          terraform apply -auto-approve -var="input_string=${{ github.event.inputs.input_string }}"
+      
+      - name: Log Repository Name
+        run: |
+          echo "The created repository name is: ${{ steps.extract_repo_name.outputs.repository_name }}"
