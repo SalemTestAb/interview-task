@@ -49,20 +49,20 @@ jobs:
 
             echo "Username '${{ github.event.inputs.username }}' is valid."
 
-    - name: Azure login
-      uses: azure/login@v2
-      with:
-        client-id: ${{ inputs.client_id  }}
-        tenant-id: ${{ inputs.tenant_id }}
-        subscription-id: ${{ inputs.subscription_id }}
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ inputs.client_id  }}
+          tenant-id: ${{ inputs.tenant_id }}
+          subscription-id: ${{ inputs.subscription_id }}
 
-    # - name: Set Environment Variables
-    #   shell: bash
-    #   run: |
-    #     echo "ARM_CLIENT_ID=${{ inputs.client_id }}" >> $GITHUB_ENV
-    #     echo "ARM_SUBSCRIPTION_ID=${{ inputs.subscription_id }}" >> $GITHUB_ENV
-    #     echo "ARM_TENANT_ID=${{ inputs.tenant_id }}" >> $GITHUB_ENV
-    #     echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
+      # - name: Set Environment Variables
+      #   shell: bash
+      #   run: |
+      #     echo "ARM_CLIENT_ID=${{ inputs.client_id }}" >> $GITHUB_ENV
+      #     echo "ARM_SUBSCRIPTION_ID=${{ inputs.subscription_id }}" >> $GITHUB_ENV
+      #     echo "ARM_TENANT_ID=${{ inputs.tenant_id }}" >> $GITHUB_ENV
+      #     echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
