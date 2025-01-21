@@ -16,7 +16,7 @@ jobs:
 
       - name: Create repository
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.JUSTTOKEN }}
         run: |
           USERNAME="${{ github.event.inputs.username }}"
           ORGANIZATION="${{ github.repository_owner }}"
