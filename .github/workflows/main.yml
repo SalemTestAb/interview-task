@@ -39,6 +39,29 @@ jobs:
               "name": "'"$REPO_NAME"'",
               "private": true
             }'
+    
+      - name: Add user as collaborator
+        env:
+          GITHUB_TOKEN: ${{ secrets.JUSTTOKEN }}
+        run: |
+          # Inputs
+          USERNAME="${{ github.event.inputs.username }}"
+          REPO_NAME="${{ github.event.inputs.repo_name }}"
+          ORGANIZATION="${{ github.repository_owner }}"
+
+          # Default repository name if not provided
+          if [ -z "$REPO_NAME" ]; then
+            REPO_NAME="${USERNAME}-repo"
+          fi
+
+          # Add the user as a collaborator with write permission
+          curl -X PUT \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/$ORGANIZATION/$REPO_NAME/collaborators/$USERNAME \
+            -d '{
+              "permission": "push"
+            }'
 
       - name: Done
         run: echo "Repository created from template for ${{ github.event.inputs.username }}"
